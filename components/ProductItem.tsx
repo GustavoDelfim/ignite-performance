@@ -1,4 +1,13 @@
-import { memo } from "react"
+import { memo, useState } from "react"
+import dynamic from 'next/dynamic'
+import { AddProductWishListProps } from "./AddProductWishList"
+import lodash from 'lodash'
+
+const AddProductWishList = dynamic<AddProductWishListProps>(() => {
+  return import('./AddProductWishList').then(mod => mod.AddProductWishList)
+}, {
+  loading: () => <span>Carregando...</span>
+})
 
 export type ProductItem = {
   id: number
@@ -13,15 +22,23 @@ interface ProductItemProps {
 }
 
 function ProductItemComp ({ product, onAddToWishList }: ProductItemProps) {
+  const [isAddingToWishList, setIsAddingToWishList] = useState(false)
+  
   return (
     <div>
       {product.title} - <strong>{product.priceFormatted}</strong>
+      <button onClick={() => setIsAddingToWishList(true)}>Add to wish list</button>
 
-      <button onClick={() => onAddToWishList(product.id)}>Add to wish list</button>
+      {isAddingToWishList &&
+        <AddProductWishList
+        onAddWishLIst={() => onAddToWishList(product.id)}
+        onRequestClose={() => setIsAddingToWishList(false)}
+        />
+      }
     </div>
   )
 }
 
 export const ProductItem = memo(ProductItemComp, (prevProps, nextProps) => {
-  return Object.is(prevProps.product, nextProps.product)
+  return lodash.isEqual(prevProps.product, nextProps.product)
 })
